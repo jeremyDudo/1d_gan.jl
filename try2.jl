@@ -1,7 +1,18 @@
 using Flux, Plots, Random, Statistics
 using Flux: @epochs
-accuracy(x, y) = Flux.onecold(x) .== Flux.onecold(y);
 
+accuracy(x, y) = Flux.onecold(x) .== Flux.onecold(y);
+function accuracy(x, y)
+    inpt = [y[i][1] for i in 1:length(y)]
+    outp = [y[i][2] for i in 1:length(y)]
+
+    xoutp = x.(inpt)
+    xoutpp = [round(xx.data[1]) for xx in xoutp]
+    # print(xoutp)
+    acc = mean(xoutpp .== outp)
+    return acc
+end
+accuracy(disc, test)
 # choose a starting 1-dimensional function to model of the general form y = f(x)
 # where y is the output and x is the input
 
@@ -63,14 +74,15 @@ size(fakeysX), size(fakeysY)
 
 scatter(fakeysX,fakeysY)
 
-trueX, truey = gen_real_samples()
-fakeX, fakey = gen_fake_samples()
+trueX, truey = gen_real_samples(1000)
+fakeX, fakey = gen_fake_samples(1000)
 
 data = [(trueX[i,:], truey[i]) for i ∈ 1:length(truey)]
 append!(data, [(fakeX[i,:], fakey[i]) for i ∈ 1:length(fakey)])
+shuffle!(data)
 
-train = data[1:150]
-test = data[151:end]
+train = data[1:1500]
+test = data[1501:end]
 
 
 function define_discriminator(n_inputs=2)  
@@ -91,6 +103,14 @@ function define_generator(latent_dim, n_outputs=2)
     return gen
 end
 
+function define_gan(generator, discriminator)
+    # ideally, would make the discriminator non-trainable here, but that looks to be Keras-specific API :(
+    gan = Chain(
+        generator,
+        discriminator
+    )
+    return gan
+end
     
 function bce(ŷ, y)
     neg_abs = -abs.(ŷ)
@@ -101,9 +121,16 @@ disc = define_discriminator()
 
 disc_loss(x, y) = bce(disc(x),y)
 
-opt_disc = ADAM(1e-3)
+opt_disc = ADAM(params(disc), 0.001f0, β1 = 0.5)
 
 
-@epochs 100 Flux.train!(disc_loss, train, opt_disc)
-            # cb = [()->@show accuracy(disc, test)])
+@epochs 100 Flux.train!(disc_loss, train, opt_disc,
+            cb = [()->@show accuracy(disc, test)])
+size(train)
+traininpt, trainoutp = train[:][:,1], train[:][:,2]
+traininpt
+trainoutp
 
+mean([1,1,1,1,1,1,1,1,1,1,1] .== [1,1,1,1,1,0,0,0,1,1,1])
+
+disc([0.0900755, 0.0081136])
