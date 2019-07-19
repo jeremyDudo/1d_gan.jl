@@ -110,6 +110,7 @@ function train_discriminator(n_epochs=1000, n_batch=500)
         end
     end
 end
-discriminator(dataX)
-disc_loss(dataX, datay)
-train_discriminator()
+
+train_discriminator(500, 1500)
+
+# this has a poor loss, gonna try again
