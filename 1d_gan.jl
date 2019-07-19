@@ -55,7 +55,7 @@ fakeX, fakey = gen_fake_samples()
 function bce(ŷ, y)
     neg_abs = -abs.(ŷ)
     mean(relu.(ŷ) .- ŷ .* y .+ log.(1 .+ exp.(neg_abs)))
-  end
+end
 
 function nullify_grad!(p)
     if typeof(p) <: TrackedArray
