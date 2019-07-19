@@ -19,7 +19,7 @@ plot(inpt, outp)
 # real data samples 
 function gen_real_samples(n=100)
     # Generate random inputs between -0.5 and 0.5
-    X1 = randn(n) .- 0.5
+    X1 = rand(n) .- 0.5
 
     # compute their outputs
     X2 = X1.^2 
@@ -35,8 +35,8 @@ end
 
 function gen_fake_samples(n=100)
     # Generate random inputs and outputs between -1 and 1
-    X1 = -1 .+ randn(n) .* 2
-    X2 = -1 .+ randn(n) .* 2
+    X1 = -1 .+ rand(n) .* 2
+    X2 = -1 .+ rand(n) .* 2
 
     X1 = reshape(X1, (n,1))
     X2 = reshape(X2, (n,1))
@@ -48,9 +48,8 @@ function gen_fake_samples(n=100)
     return X, y
 end
 
-dataX, datay = gen_real_samples()
-size(dataX), size(datay)
-scatter(data[:,1], data[:,2])
+trueX, truey = gen_real_samples()
+fakeX, fakey = gen_fake_samples()
 
 # binary cross entropy
 function bce(ŷ, y)
@@ -58,9 +57,22 @@ function bce(ŷ, y)
     mean(relu.(ŷ) .- ŷ .* y .+ log.(1 .+ exp.(neg_abs)))
   end
 
+function nullify_grad!(p)
+    if typeof(p) <: TrackedArray
+        p.grad .= 0.0f0
+    end
+    return p
+end
+
+function zero_grad!(model)
+    model = mapleaves(nullify_grad!, model)
+end
+
+
 discriminator = Chain(
     x->reshape(x, 2, :),
     Dense(2, 25, relu),
+    Dense(25,25,relu),
     Dense(25,25,relu),
     Dense(25, 1, sigmoid)
 )
@@ -75,6 +87,8 @@ function train_discriminator(n_epochs=1000, n_batch=500)
     for i ∈ 1:n_epochs
 
         X_real, y_real = gen_real_samples(half_batch)
+
+        zero_grad!(discriminator)
 
         disc_real = discriminator(X_real)
 
