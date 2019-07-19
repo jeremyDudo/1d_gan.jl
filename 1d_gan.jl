@@ -61,6 +61,7 @@ function bce(ŷ, y)
 discriminator = Chain(
     x->reshape(x, 2, :),
     Dense(2, 25, relu),
+    Dense(25,25,relu),
     Dense(25, 1, sigmoid)
 )
 
@@ -68,7 +69,7 @@ disc_loss(x, y) = bce(discriminator(x),y)
 
 opt_disc = ADAM(params(discriminator), 0.001f0, β1 = 0.5)
 
-function train_discriminator(n_epochs=1000, n_batch=128)
+function train_discriminator(n_epochs=1000, n_batch=500)
     half_batch = Int(n_batch/2)
 
     for i ∈ 1:n_epochs
@@ -90,8 +91,9 @@ function train_discriminator(n_epochs=1000, n_batch=128)
         Flux.back!(disc_loss)
 
         opt_disc()
-
-        println("Epoch: $(i): | Discrimenator Loss: $(disc_loss.data)")
+        if i%50 == 0
+            println("Epoch: $(i): | Discrimenator Loss: $(disc_loss.data)")
+        end
     end
 end
 discriminator(dataX)
