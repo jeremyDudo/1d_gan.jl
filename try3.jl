@@ -124,17 +124,23 @@ function train(x)
     Flux.back!(G_loss)
     opt_gen()
   
-
-    println("D Loss: $(D_loss.data) | G loss: $(G_loss.data)")
-  
+    if training_steps % verbose_freq == 0
+        println("D Loss: $(D_loss.data) | G loss: $(G_loss.data)")
+    end
+    
     training_steps += 1
     param(0.0f0)
 end
 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 10000;
 
 for e = 1:NUM_EPOCHS
     println("Epoch $e: ")
     train(500)
 end
 
+disc([0.002, 0.002^2])
+
+x_fake, y_fake = gen_fake_samples(gen, latent_dim)
+x_fake[:, 1]
+scatter(x_fake[2, :], x_fake[1, :])
