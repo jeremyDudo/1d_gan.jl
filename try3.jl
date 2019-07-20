@@ -127,7 +127,7 @@ function train(x)
     if training_steps % verbose_freq == 0
         println("D Loss: $(D_loss.data) | G loss: $(G_loss.data)")
     end
-    
+
     training_steps += 1
     param(0.0f0)
 end
@@ -139,8 +139,10 @@ for e = 1:NUM_EPOCHS
     train(500)
 end
 
+
+test_disc = [(i, i^2) for i ∈ -0.5:0.01:0.5]
 disc([0.002, 0.002^2])
 
 x_fake, y_fake = gen_fake_samples(gen, latent_dim)
-x_fake[:, 1]
-scatter(x_fake[2, :], x_fake[1, :])
+
+scatter(x_fake[1, :], x_fake[2, :], title="GAN")
